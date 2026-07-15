@@ -19,6 +19,19 @@ const app = isFirebaseConfigured
 
 export const auth = app ? getAuth(app) : null
 
+interface ApiErrorBody { error?: string }
+
+async function readApiJson<T extends object>(response: Response): Promise<T & ApiErrorBody> {
+  const text = await response.text()
+  if (!text) return {} as T & ApiErrorBody
+  try {
+    return JSON.parse(text) as T & ApiErrorBody
+  } catch {
+    const summary = text.replace(/\s+/g, ' ').trim().slice(0, 240)
+    throw new Error(`API 서버 오류 (${response.status}): ${summary || 'JSON이 아닌 응답을 받았습니다.'}`)
+  }
+}
+
 export async function signInWithHansungAccount(): Promise<void> {
   if (!auth) return
   const provider = new GoogleAuthProvider()
@@ -56,7 +69,7 @@ export async function createBookingTransaction(input: CreateBookingInput): Promi
       purpose: input.purpose,
     }),
   })
-  const body = await response.json() as { id?: string; error?: string }
+  const body = await readApiJson<{ id?: string }>(response)
   if (!response.ok || !body.id) throw new Error(`${response.status}: ${body.error ?? '예약 요청에 실패했습니다.'}`)
   return body.id
 }
@@ -69,7 +82,7 @@ export async function cancelBooking(bookingId: string, adminSession?: string): P
     headers: { Authorization: `Bearer ${token}`, ...(adminSession ? { 'X-Admin-Session': adminSession } : {}) },
   })
   if (!response.ok) {
-    const body = await response.json() as { error?: string }
+    const body = await readApiJson<Record<string, never>>(response)
     throw new Error(body.error ?? '예약 취소에 실패했습니다.')
   }
 }
@@ -83,7 +96,7 @@ export async function setSpaceBookingDisabled(spaceId: SpaceId, bookingDisabled:
     body: JSON.stringify({ bookingDisabled }),
   })
   if (!response.ok) {
-    const body = await response.json() as { error?: string }
+    const body = await readApiJson<Record<string, never>>(response)
     throw new Error(body.error ?? '공간 상태 변경에 실패했습니다.')
   }
 }
@@ -97,7 +110,7 @@ export async function createTimeBlock(spaceId: SpaceId, date: string, start: str
     body: JSON.stringify({ spaceId, startAt: `${date}T${start}:00+09:00`, endAt: `${date}T${end}:00+09:00` }),
   })
   if (!response.ok) {
-    const body = await response.json() as { error?: string }
+    const body = await readApiJson<Record<string, never>>(response)
     throw new Error(body.error ?? '시간 차단에 실패했습니다.')
   }
 }
@@ -110,7 +123,7 @@ export async function verifyAdminPassword(password: string): Promise<string> {
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
     body: JSON.stringify({ password }),
   })
-  const body = await response.json() as { adminSession?: string; error?: string }
+  const body = await readApiJson<{ adminSession?: string }>(response)
   if (!response.ok || !body.adminSession) throw new Error(body.error ?? '관리자 인증에 실패했습니다.')
   return body.adminSession
 }
@@ -122,7 +135,7 @@ export async function fetchReservations(adminSession?: string): Promise<Reservat
   const response = await fetch(`${bookingApiUrl.replace(/\/$/, '')}/bookings${query}`, {
     headers: { Authorization: `Bearer ${token}`, ...(adminSession ? { 'X-Admin-Session': adminSession } : {}) },
   })
-  const body = await response.json() as { reservations?: Reservation[]; error?: string }
+  const body = await readApiJson<{ reservations?: Reservation[] }>(response)
   if (!response.ok) throw new Error(body.error ?? '예약 목록을 불러오지 못했습니다.')
   return body.reservations ?? []
 }
@@ -134,7 +147,7 @@ export async function fetchAvailability(spaceId: SpaceId, date: string): Promise
   const response = await fetch(`${bookingApiUrl.replace(/\/$/, '')}/availability?${params}`, {
     headers: { Authorization: `Bearer ${token}` },
   })
-  const body = await response.json() as { slots?: string[]; bookingDisabled?: boolean; error?: string }
+  const body = await readApiJson<{ slots?: string[]; bookingDisabled?: boolean }>(response)
   if (!response.ok) throw new Error(body.error ?? '예약 현황을 불러오지 못했습니다.')
   return { slots: body.slots ?? [], bookingDisabled: body.bookingDisabled === true }
 }

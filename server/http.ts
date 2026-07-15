@@ -17,9 +17,10 @@ export class HttpError extends Error {
 export async function authenticate(req: VercelRequest): Promise<AuthenticatedUser> {
   const token = req.headers.authorization?.match(/^Bearer (.+)$/)?.[1]
   if (!token) throw new HttpError(401, '로그인이 필요합니다.')
+  const adminAuth = getFirebaseAdmin().auth
 
   try {
-    const decoded = await getFirebaseAdmin().auth.verifyIdToken(token)
+    const decoded = await adminAuth.verifyIdToken(token)
     if (!decoded.email?.endsWith('@hansung.ac.kr')) {
       throw new HttpError(403, '한성대학교 계정만 이용할 수 있습니다.')
     }
@@ -35,7 +36,11 @@ export function sendError(res: VercelResponse, error: unknown): void {
     res.status(error.status).json({ error: error.message })
     return
   }
-  console.error(error)
+  console.error('[vercel-api] unhandled error', {
+    name: error instanceof Error ? error.name : 'UnknownError',
+    message: error instanceof Error ? error.message : String(error),
+    stack: error instanceof Error ? error.stack : undefined,
+  })
   res.status(500).json({ error: '서버 처리 중 오류가 발생했습니다.' })
 }
 
