@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { getAvailability } from '../server/booking-service.js'
-import { authenticate, HttpError, sendError, singleParam } from '../server/http.js'
+import { getAvailability } from '../server-runtime/booking-service.js'
+import { authenticate, HttpError, sendError, singleParam } from '../server-runtime/http.js'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'GET') {

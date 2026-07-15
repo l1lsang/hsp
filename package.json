@@ -7,7 +7,7 @@
     "dev": "vite",
     "dev:vercel": "npx vercel dev",
     "typecheck:api": "tsc -p tsconfig.api.json",
-    "build": "tsc -b && tsc -p tsconfig.api.json && vite build",
+    "build": "tsc -b && tsc -p tsconfig.runtime.json && tsc -p tsconfig.api.json && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },

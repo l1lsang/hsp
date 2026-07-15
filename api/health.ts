@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { getFirebaseAdmin } from '../server/firebase-admin.js'
+import { getFirebaseAdmin } from '../server-runtime/firebase-admin.js'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'GET') {
@@ -30,4 +30,3 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     })
   }
 }
-

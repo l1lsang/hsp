@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { createBooking, listBookings } from '../../server/booking-service.js'
-import { requireAdminSession } from '../../server/admin-session.js'
-import { authenticate, HttpError, sendError } from '../../server/http.js'
+import { createBooking, listBookings } from '../../server-runtime/booking-service.js'
+import { requireAdminSession } from '../../server-runtime/admin-session.js'
+import { authenticate, HttpError, sendError } from '../../server-runtime/http.js'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST' && req.method !== 'GET') {

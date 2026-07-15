@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { createAdminSession } from '../../server/admin-session.js'
-import { authenticate, HttpError, sendError } from '../../server/http.js'
+import { createAdminSession } from '../../server-runtime/admin-session.js'
+import { authenticate, HttpError, sendError } from '../../server-runtime/http.js'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
