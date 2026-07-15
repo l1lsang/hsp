@@ -1,6 +1,6 @@
 import { FieldValue, Timestamp } from 'firebase-admin/firestore'
-import { getFirebaseAdmin } from './firebase-admin'
-import { HttpError, type AuthenticatedUser } from './http'
+import { getFirebaseAdmin } from './firebase-admin.js'
+import { HttpError, type AuthenticatedUser } from './http.js'
 
 export const ALLOWED_SPACES = new Set(['IB101', 'IB102', 'IB103', 'IB104', 'IB105', 'IB106', 'IB107', 'IB108', 'IB111'])
 const SLOT_MS = 30 * 60 * 1000

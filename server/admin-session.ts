@@ -1,6 +1,6 @@
 import { createHmac, timingSafeEqual } from 'node:crypto'
 import type { VercelRequest } from '@vercel/node'
-import { HttpError, type AuthenticatedUser } from './http'
+import { HttpError, type AuthenticatedUser } from './http.js'
 
 interface AdminSessionPayload {
   uid: string
@@ -48,4 +48,3 @@ export function requireAdminSession(req: VercelRequest, user: AuthenticatedUser)
     throw new HttpError(403, '관리자 인증이 만료되었습니다. 다시 인증해 주세요.')
   }
 }
-

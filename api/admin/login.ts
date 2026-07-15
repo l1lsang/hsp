@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { createAdminSession } from '../../server/admin-session'
-import { authenticate, HttpError, sendError } from '../../server/http'
+import { createAdminSession } from '../../server/admin-session.js'
+import { authenticate, HttpError, sendError } from '../../server/http.js'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
@@ -16,4 +16,3 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     sendError(res, error)
   }
 }
-

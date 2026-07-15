@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { setSpaceStatus } from '../../../server/booking-service'
-import { requireAdminSession } from '../../../server/admin-session'
-import { authenticate, HttpError, sendError, singleParam } from '../../../server/http'
+import { setSpaceStatus } from '../../../server/booking-service.js'
+import { requireAdminSession } from '../../../server/admin-session.js'
+import { authenticate, HttpError, sendError, singleParam } from '../../../server/http.js'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'PATCH') {
