@@ -10,9 +10,14 @@ import {
 } from 'firebase/auth'
 import type { Reservation, SpaceId } from '../types'
 
+const configuredAuthDomain = import.meta.env.VITE_FIREBASE_AUTH_DOMAIN
+const authDomain = typeof window !== 'undefined' && import.meta.env.PROD && window.location.protocol === 'https:'
+  ? window.location.host
+  : configuredAuthDomain
+
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  authDomain,
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
@@ -72,10 +77,39 @@ function authErrorCode(error: unknown) {
     : ''
 }
 
+const GOOGLE_REDIRECT_PENDING_KEY = 'googleSignInRedirectPending'
+
+async function startGoogleRedirect(provider: GoogleAuthProvider): Promise<'redirecting'> {
+  if (!auth) throw new Error('Firebase 웹 앱 설정을 먼저 완료해 주세요.')
+  sessionStorage.setItem(GOOGLE_REDIRECT_PENDING_KEY, 'true')
+  try {
+    await signInWithRedirect(auth, provider)
+    return 'redirecting'
+  } catch (error) {
+    sessionStorage.removeItem(GOOGLE_REDIRECT_PENDING_KEY)
+    throw error
+  }
+}
+
 export async function completeHansungRedirectSignIn(): Promise<void> {
   if (!auth) return
-  const result = await getRedirectResult(auth)
-  if (result) await ensureHansungUser(result.user)
+  const redirectWasPending = sessionStorage.getItem(GOOGLE_REDIRECT_PENDING_KEY) === 'true'
+  try {
+    const result = await getRedirectResult(auth)
+    if (result) {
+      await ensureHansungUser(result.user)
+      return
+    }
+    if (auth.currentUser) {
+      await ensureHansungUser(auth.currentUser)
+      return
+    }
+    if (redirectWasPending) {
+      throw new Error('Google 로그인 결과를 가져오지 못했습니다. 현재 서비스 도메인을 Firebase 승인 도메인과 Google OAuth 리디렉션 URI에 등록해 주세요.')
+    }
+  } finally {
+    sessionStorage.removeItem(GOOGLE_REDIRECT_PENDING_KEY)
+  }
 }
 
 export async function signInWithHansungAccount(): Promise<'signed-in' | 'redirecting'> {
@@ -86,8 +120,7 @@ export async function signInWithHansungAccount(): Promise<'signed-in' | 'redirec
 
   const provider = createHansungProvider()
   if (isMobileBrowser()) {
-    await signInWithRedirect(auth, provider)
-    return 'redirecting'
+    return startGoogleRedirect(provider)
   }
 
   try {
@@ -97,8 +130,7 @@ export async function signInWithHansungAccount(): Promise<'signed-in' | 'redirec
   } catch (error) {
     const code = authErrorCode(error)
     if (code === 'auth/popup-blocked' || code === 'auth/operation-not-supported-in-this-environment') {
-      await signInWithRedirect(auth, provider)
-      return 'redirecting'
+      return startGoogleRedirect(provider)
     }
     if (code === 'auth/unauthorized-domain') {
       throw new Error('현재 사이트 주소가 Firebase Authentication 승인 도메인에 등록되지 않았습니다.', { cause: error })

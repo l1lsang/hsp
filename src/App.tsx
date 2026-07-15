@@ -55,15 +55,17 @@ function App() {
   const [adminPassword, setAdminPassword] = useState('')
   const [adminSubmitting, setAdminSubmitting] = useState(false)
   const [adminSession, setAdminSession] = useState(() => sessionStorage.getItem('adminSession') ?? '')
+  const [loginError, setLoginError] = useState('')
 
   useEffect(() => {
     if (!auth) return
     let active = true
     void completeHansungRedirectSignIn().catch(error => {
-      if (active) setToast(error instanceof Error ? error.message : 'Google 로그인 결과를 확인하지 못했습니다.')
+      if (active) setLoginError(error instanceof Error ? error.message : 'Google 로그인 결과를 확인하지 못했습니다.')
     })
     const unsubscribe = onAuthStateChanged(auth, currentUser => {
       setUser(currentUser)
+      if (currentUser) setLoginError('')
       setPage(currentPage => currentUser && currentPage === 'login' ? 'spaces' : currentUser ? currentPage : 'login')
     })
     return () => {
@@ -278,7 +280,7 @@ function App() {
     }
   }
 
-  if (page === 'login') return <LoginPage onLogin={() => setPage('spaces')} />
+  if (page === 'login') return <LoginPage onLogin={() => setPage('spaces')} redirectError={loginError} />
 
   return (
     <div className="app-shell">
