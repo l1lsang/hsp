@@ -1,5 +1,13 @@
 import { getApps, initializeApp } from 'firebase/app'
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth'
+import {
+  getAuth,
+  getRedirectResult,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signInWithRedirect,
+  signOut,
+  type User,
+} from 'firebase/auth'
 import type { Reservation, SpaceId } from '../types'
 
 const firebaseConfig = {
@@ -32,14 +40,70 @@ async function readApiJson<T extends object>(response: Response): Promise<T & Ap
   }
 }
 
-export async function signInWithHansungAccount(): Promise<void> {
-  if (!auth) return
+function createHansungProvider() {
   const provider = new GoogleAuthProvider()
-  provider.setCustomParameters({ hd: 'hansung.ac.kr' })
-  const result = await signInWithPopup(auth, provider)
-  if (!result.user.email?.endsWith('@hansung.ac.kr')) {
-    await auth.signOut()
-    throw new Error('한성대학교 계정만 로그인할 수 있습니다.')
+  provider.setCustomParameters({ hd: 'hansung.ac.kr', prompt: 'select_account' })
+  return provider
+}
+
+function isHansungUser(user: User) {
+  return user.email?.toLowerCase().endsWith('@hansung.ac.kr') === true
+}
+
+async function ensureHansungUser(user: User) {
+  if (isHansungUser(user)) return
+  if (auth) await signOut(auth)
+  throw new Error('한성대학교 계정만 로그인할 수 있습니다.')
+}
+
+function isMobileBrowser() {
+  const userAgent = navigator.userAgent
+  return /Android|iPhone|iPad|iPod|Mobile/i.test(userAgent)
+    || (/Macintosh/i.test(userAgent) && navigator.maxTouchPoints > 1)
+}
+
+function isInAppBrowser() {
+  return /KAKAOTALK|NAVER|Instagram|FBAN|FBAV|Line\//i.test(navigator.userAgent)
+}
+
+function authErrorCode(error: unknown) {
+  return typeof error === 'object' && error !== null && 'code' in error
+    ? String(error.code)
+    : ''
+}
+
+export async function completeHansungRedirectSignIn(): Promise<void> {
+  if (!auth) return
+  const result = await getRedirectResult(auth)
+  if (result) await ensureHansungUser(result.user)
+}
+
+export async function signInWithHansungAccount(): Promise<'signed-in' | 'redirecting'> {
+  if (!auth) throw new Error('Firebase 웹 앱 설정을 먼저 완료해 주세요.')
+  if (isInAppBrowser()) {
+    throw new Error('카카오톡·네이버·인스타그램 내부 브라우저에서는 Google 로그인이 제한될 수 있습니다. Safari 또는 Chrome에서 열어 주세요.')
+  }
+
+  const provider = createHansungProvider()
+  if (isMobileBrowser()) {
+    await signInWithRedirect(auth, provider)
+    return 'redirecting'
+  }
+
+  try {
+    const result = await signInWithPopup(auth, provider)
+    await ensureHansungUser(result.user)
+    return 'signed-in'
+  } catch (error) {
+    const code = authErrorCode(error)
+    if (code === 'auth/popup-blocked' || code === 'auth/operation-not-supported-in-this-environment') {
+      await signInWithRedirect(auth, provider)
+      return 'redirecting'
+    }
+    if (code === 'auth/unauthorized-domain') {
+      throw new Error('현재 사이트 주소가 Firebase Authentication 승인 도메인에 등록되지 않았습니다.', { cause: error })
+    }
+    throw error
   }
 }
 

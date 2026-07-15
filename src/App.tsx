@@ -12,6 +12,7 @@ import { LoginPage } from './pages/LoginPage'
 import {
   auth,
   cancelBooking,
+  completeHansungRedirectSignIn,
   createBookingTransaction,
   createTimeBlock,
   fetchAvailability,
@@ -57,10 +58,18 @@ function App() {
 
   useEffect(() => {
     if (!auth) return
-    return onAuthStateChanged(auth, currentUser => {
+    let active = true
+    void completeHansungRedirectSignIn().catch(error => {
+      if (active) setToast(error instanceof Error ? error.message : 'Google 로그인 결과를 확인하지 못했습니다.')
+    })
+    const unsubscribe = onAuthStateChanged(auth, currentUser => {
       setUser(currentUser)
       setPage(currentPage => currentUser && currentPage === 'login' ? 'spaces' : currentUser ? currentPage : 'login')
     })
+    return () => {
+      active = false
+      unsubscribe()
+    }
   }, [])
 
   useEffect(() => {
