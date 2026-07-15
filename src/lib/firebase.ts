@@ -12,7 +12,7 @@ const firebaseConfig = {
 }
 
 export const isFirebaseConfigured = Boolean(firebaseConfig.projectId && firebaseConfig.apiKey)
-const bookingApiUrl = import.meta.env.VITE_BOOKING_API_URL as string | undefined
+const bookingApiUrl = (import.meta.env.VITE_BOOKING_API_URL as string | undefined) || '/api'
 const app = isFirebaseConfigured
   ? getApps()[0] ?? initializeApp(firebaseConfig)
   : null

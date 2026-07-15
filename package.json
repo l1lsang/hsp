@@ -5,16 +5,20 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "dev:vercel": "npx vercel dev",
+    "typecheck:api": "tsc -p tsconfig.api.json",
+    "build": "tsc -b && tsc -p tsconfig.api.json && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
     "firebase": "^12.16.0",
+    "firebase-admin": "^14.1.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7"
   },
   "devDependencies": {
+    "@vercel/node": "^5.8.24",
     "@eslint/js": "^10.0.1",
     "@types/node": "^24.13.2",
     "@types/react": "^19.2.17",
