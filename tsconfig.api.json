@@ -6,11 +6,12 @@
     "moduleResolution": "NodeNext",
     "types": ["node"],
     "strict": true,
-    "noEmit": true,
+    "rootDir": "api-src",
+    "outDir": "api",
     "skipLibCheck": true,
     "verbatimModuleSyntax": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true
   },
-  "include": ["api", "server"]
+  "include": ["api-src/**/*.ts"]
 }
