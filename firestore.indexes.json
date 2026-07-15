@@ -7,8 +7,15 @@
         { "fieldPath": "ownerUid", "order": "ASCENDING" },
         { "fieldPath": "startAt", "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "bookingSlots",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "spaceId", "order": "ASCENDING" },
+        { "fieldPath": "startsAt", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []
 }
-

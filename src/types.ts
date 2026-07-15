@@ -15,8 +15,6 @@ export interface Space {
   id: SpaceId
   name: string
   type: string
-  capacity: number
-  amenity: string
 }
 
 export interface Reservation {
@@ -30,4 +28,3 @@ export interface Reservation {
   userName: string
   userEmail: string
 }
-

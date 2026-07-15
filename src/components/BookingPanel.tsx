@@ -22,11 +22,6 @@ export function BookingPanel({ space, date, selectedSlots, disabledSlots, booked
         <div className="room-number">{space.id.replace('IB', '')}</div>
         <div><span>선택한 공간</span><h2 id="booking-title">{space.id}</h2><p>{space.type}</p></div>
       </div>
-      <div className="amenities">
-        <span><Icon name="users" size={17} /> 최대 {space.capacity}명</span>
-        <span><Icon name="monitor" size={17} /> {space.amenity}</span>
-      </div>
-
       <div className="panel-divider" />
       <div className="time-heading">
         <div><h3>예약 시간</h3><p>{formatLongDate(date)}</p></div>
@@ -64,4 +59,3 @@ export function BookingPanel({ space, date, selectedSlots, disabledSlots, booked
     </aside>
   )
 }
-

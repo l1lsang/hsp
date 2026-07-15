@@ -4,6 +4,7 @@ import { getFirebaseAdmin } from './firebase-admin'
 export interface AuthenticatedUser {
   uid: string
   email: string
+  name: string
   admin: boolean
 }
 
@@ -22,7 +23,7 @@ export async function authenticate(req: VercelRequest): Promise<AuthenticatedUse
     if (!decoded.email?.endsWith('@hansung.ac.kr')) {
       throw new HttpError(403, '한성대학교 계정만 이용할 수 있습니다.')
     }
-    return { uid: decoded.uid, email: decoded.email, admin: decoded.admin === true }
+    return { uid: decoded.uid, email: decoded.email, name: decoded.name ?? decoded.email.split('@')[0], admin: decoded.admin === true }
   } catch (error) {
     if (error instanceof HttpError) throw error
     throw new HttpError(401, '유효하지 않은 로그인 정보입니다.')
@@ -41,4 +42,3 @@ export function sendError(res: VercelResponse, error: unknown): void {
 export function singleParam(value: string | string[] | undefined): string {
   return Array.isArray(value) ? value[0] ?? '' : value ?? ''
 }
-

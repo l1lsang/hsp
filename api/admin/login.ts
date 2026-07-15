@@ -1,7 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { createBlock } from '../server/booking-service'
-import { requireAdminSession } from '../server/admin-session'
-import { authenticate, HttpError, sendError } from '../server/http'
+import { createAdminSession } from '../../server/admin-session'
+import { authenticate, HttpError, sendError } from '../../server/http'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
@@ -11,11 +10,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
   try {
     const user = await authenticate(req)
-    requireAdminSession(req, user)
-    user.admin = true
-    const id = await createBlock(user, req.body as Record<string, unknown>)
-    res.status(201).json({ id })
+    const adminSession = createAdminSession(user, req.body?.password)
+    res.status(200).json({ adminSession })
   } catch (error) {
     sendError(res, error)
   }
 }
+

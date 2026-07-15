@@ -1,9 +1,13 @@
 import { Icon } from './Icon'
 import type { Page } from '../types'
+import sangsangMascot from '../assets/상상부기.png'
 
 interface SidebarProps {
   page: Page
   onNavigate: (page: Page) => void
+  userName: string
+  userEmail: string
+  onLogout: () => void
   onClose?: () => void
 }
 
@@ -13,7 +17,7 @@ const menuItems: { id: Page; label: string; icon: 'grid' | 'calendar' | 'shield'
   { id: 'admin', label: '관리자', icon: 'shield' },
 ]
 
-export function Sidebar({ page, onNavigate, onClose }: SidebarProps) {
+export function Sidebar({ page, onNavigate, userName, userEmail, onLogout, onClose }: SidebarProps) {
   const navigate = (nextPage: Page) => {
     onNavigate(nextPage)
     onClose?.()
@@ -22,7 +26,7 @@ export function Sidebar({ page, onNavigate, onClose }: SidebarProps) {
   return (
     <aside className="sidebar">
       <div className="brand" aria-label="한성대학교 상상베이스">
-        <div className="brand-mark">H</div>
+        <img className="brand-mascot" src={sangsangMascot} alt="상상부기 마스코트" />
         <div><strong>한성대학교</strong><span>상상베이스 예약</span></div>
       </div>
       <nav className="main-nav" aria-label="주 메뉴">
@@ -36,14 +40,13 @@ export function Sidebar({ page, onNavigate, onClose }: SidebarProps) {
       </nav>
       <div className="sidebar-bottom">
         <div className="user-card">
-          <span className="avatar">김</span>
-          <div><strong>김한성</strong><span>학생 · 2170000</span></div>
+          <span className="avatar">{userName.slice(0, 1)}</span>
+          <div><strong>{userName}</strong><span>{userEmail}</span></div>
         </div>
-        <button className="logout-button" onClick={() => navigate('login')}>
+        <button className="logout-button" onClick={onLogout}>
           <Icon name="logout" size={18} /> 로그아웃
         </button>
       </div>
     </aside>
   )
 }
-

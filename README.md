@@ -8,7 +8,7 @@
 
 ## 로컬 실행
 
-화면만 확인할 때는 `npm run dev`를 사용합니다. Firebase 설정 전에는 데모 모드로 동작합니다. Vercel API까지 함께 실행하려면 다음 명령을 사용합니다.
+화면만 확인할 때는 `npm run dev`를 사용합니다. 로그인과 예약 API까지 함께 실행하려면 다음 명령을 사용합니다.
 
 ```bash
 npx vercel dev
@@ -36,6 +36,8 @@ Vercel Functions에서만 읽는 Firebase Admin 설정:
 FIREBASE_PROJECT_ID=
 FIREBASE_CLIENT_EMAIL=
 FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+ADMIN_ACCESS_PASSWORD=관리자접근암호
+ADMIN_SESSION_SECRET=32자이상의무작위문자열
 ```
 
 `FIREBASE_PRIVATE_KEY` 등 서버 비밀값에는 절대 `VITE_` 접두사를 붙이지 마세요. `VITE_` 변수는 브라우저 번들에 포함됩니다.
@@ -56,4 +58,4 @@ API는 Firebase ID Token과 한성대학교 이메일을 검증합니다. 필요
 3. Firebase 서비스 계정에는 필요한 최소 Firestore 권한만 부여합니다.
 4. Firestore 보안 규칙과 인덱스를 `firebase deploy --only firestore`로 배포합니다.
 
-관리자 계정에는 Firebase Admin SDK로 `admin: true` 커스텀 클레임을 부여해야 합니다.
+관리자 메뉴는 `ADMIN_ACCESS_PASSWORD`를 Vercel API에서 확인한 뒤 1시간짜리 서명 세션을 발급합니다. 암호와 세션 서명키는 브라우저 환경변수에 넣지 마세요.

@@ -62,6 +62,7 @@ export async function createBooking(user: AuthenticatedUser, body: Record<string
     transaction.create(bookingRef, {
       ownerUid: user.uid,
       ownerEmail: user.email,
+      ownerName: user.name,
       spaceId: range.spaceId,
       startAt: Timestamp.fromMillis(range.startMs),
       endAt: Timestamp.fromMillis(range.endMs),
@@ -135,3 +136,52 @@ export async function createBlock(user: AuthenticatedUser, body: Record<string, 
   return blockRef.id
 }
 
+function koreaDateTime(value: Timestamp): { date: string; time: string } {
+  const iso = new Date(value.toMillis() + 9 * 60 * 60 * 1000).toISOString()
+  return { date: iso.slice(0, 10), time: iso.slice(11, 16) }
+}
+
+export async function listBookings(user: AuthenticatedUser, includeAll: boolean) {
+  const { db } = getFirebaseAdmin()
+  const snapshot = includeAll
+    ? await db.collection('bookings').limit(300).get()
+    : await db.collection('bookings').where('ownerUid', '==', user.uid).limit(100).get()
+
+  return snapshot.docs.map(document => {
+    const data = document.data()
+    const start = koreaDateTime(data.startAt as Timestamp)
+    const end = koreaDateTime(data.endAt as Timestamp)
+    return {
+      id: document.id,
+      spaceId: data.spaceId,
+      date: start.date,
+      start: start.time,
+      end: end.time,
+      purpose: data.purpose ?? '',
+      status: data.status ?? 'upcoming',
+      userName: data.ownerName ?? data.ownerEmail?.split('@')[0] ?? '사용자',
+      userEmail: data.ownerEmail ?? '',
+    }
+  }).sort((a, b) => `${b.date}${b.start}`.localeCompare(`${a.date}${a.start}`))
+}
+
+export async function getAvailability(spaceId: string, date: string) {
+  if (!ALLOWED_SPACES.has(spaceId) || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    throw new HttpError(400, '공간과 날짜를 확인해 주세요.')
+  }
+  const { db } = getFirebaseAdmin()
+  const startMs = Date.parse(`${date}T00:00:00+09:00`)
+  const endMs = startMs + 24 * 60 * 60 * 1000
+  const [slots, space] = await Promise.all([
+    db.collection('bookingSlots')
+      .where('spaceId', '==', spaceId)
+      .where('startsAt', '>=', Timestamp.fromMillis(startMs))
+      .where('startsAt', '<', Timestamp.fromMillis(endMs))
+      .get(),
+    db.collection('spaces').doc(spaceId).get(),
+  ])
+  return {
+    slots: slots.docs.map(document => koreaDateTime(document.data().startsAt as Timestamp).time),
+    bookingDisabled: space.exists && space.data()?.bookingDisabled === true,
+  }
+}

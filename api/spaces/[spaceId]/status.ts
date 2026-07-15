@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { setSpaceStatus } from '../../../server/booking-service'
+import { requireAdminSession } from '../../../server/admin-session'
 import { authenticate, HttpError, sendError, singleParam } from '../../../server/http'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -10,10 +11,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
   try {
     const user = await authenticate(req)
+    requireAdminSession(req, user)
+    user.admin = true
     await setSpaceStatus(user, singleParam(req.query.spaceId), req.body?.bookingDisabled)
     res.status(204).end()
   } catch (error) {
     sendError(res, error)
   }
 }
-
