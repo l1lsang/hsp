@@ -61,12 +61,6 @@ async function ensureHansungUser(user: User) {
   throw new Error('한성대학교 계정만 로그인할 수 있습니다.')
 }
 
-function isMobileBrowser() {
-  const userAgent = navigator.userAgent
-  return /Android|iPhone|iPad|iPod|Mobile/i.test(userAgent)
-    || (/Macintosh/i.test(userAgent) && navigator.maxTouchPoints > 1)
-}
-
 function isInAppBrowser() {
   return /KAKAOTALK|NAVER|Instagram|FBAN|FBAV|Line\//i.test(navigator.userAgent)
 }
@@ -81,19 +75,19 @@ const GOOGLE_REDIRECT_PENDING_KEY = 'googleSignInRedirectPending'
 
 async function startGoogleRedirect(provider: GoogleAuthProvider): Promise<'redirecting'> {
   if (!auth) throw new Error('Firebase 웹 앱 설정을 먼저 완료해 주세요.')
-  sessionStorage.setItem(GOOGLE_REDIRECT_PENDING_KEY, 'true')
+  localStorage.setItem(GOOGLE_REDIRECT_PENDING_KEY, 'true')
   try {
     await signInWithRedirect(auth, provider)
     return 'redirecting'
   } catch (error) {
-    sessionStorage.removeItem(GOOGLE_REDIRECT_PENDING_KEY)
+    localStorage.removeItem(GOOGLE_REDIRECT_PENDING_KEY)
     throw error
   }
 }
 
 export async function completeHansungRedirectSignIn(): Promise<void> {
   if (!auth) return
-  const redirectWasPending = sessionStorage.getItem(GOOGLE_REDIRECT_PENDING_KEY) === 'true'
+  const redirectWasPending = localStorage.getItem(GOOGLE_REDIRECT_PENDING_KEY) === 'true'
   try {
     const result = await getRedirectResult(auth)
     if (result) {
@@ -108,7 +102,7 @@ export async function completeHansungRedirectSignIn(): Promise<void> {
       throw new Error('Google 로그인 결과를 가져오지 못했습니다. 현재 서비스 도메인을 Firebase 승인 도메인과 Google OAuth 리디렉션 URI에 등록해 주세요.')
     }
   } finally {
-    sessionStorage.removeItem(GOOGLE_REDIRECT_PENDING_KEY)
+    localStorage.removeItem(GOOGLE_REDIRECT_PENDING_KEY)
   }
 }
 
@@ -119,10 +113,6 @@ export async function signInWithHansungAccount(): Promise<'signed-in' | 'redirec
   }
 
   const provider = createHansungProvider()
-  if (isMobileBrowser()) {
-    return startGoogleRedirect(provider)
-  }
-
   try {
     const result = await signInWithPopup(auth, provider)
     await ensureHansungUser(result.user)
