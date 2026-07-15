@@ -1,0 +1,25 @@
+:root {
+  font-family: Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", Inter, system-ui, sans-serif;
+  color: #17263a;
+  background: #f4f6f5;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  --navy: #092f4f;
+  --navy-2: #0c3e65;
+  --green: #48a967;
+  --green-dark: #27824a;
+  --green-soft: #eaf7ed;
+  --line: #e2e8e4;
+  --muted: #768297;
+}
+
+* { box-sizing: border-box; }
+html { min-width: 320px; background: #f4f6f5; }
+body { margin: 0; min-width: 320px; min-height: 100vh; }
+button, input { font: inherit; }
+button { color: inherit; }
+button, a { -webkit-tap-highlight-color: transparent; }
+button:focus-visible, input:focus-visible { outline: 3px solid rgba(72, 169, 103, .35); outline-offset: 2px; }
+#root { min-height: 100vh; }
+
